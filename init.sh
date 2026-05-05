@@ -1,44 +1,64 @@
-dnf -y install cmake freetype-devel fontconfig-devel libxcb-devel libxkbcommon-devel g++ openssl-devel sqlite-devel python3-tkinter ncurses-devel perl helix
-dnf -y group install "Development Tools"
+#!/usr/bin/env bash
+set -euo pipefail
 
-dnf copr enable varlad/onefetch
-dnf -y install onefetch
+ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+SELF=$(basename "$0")
 
-# rust and rust packages
-if ! cargo --version; then
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-fi
+usage() {
+  cat <<USAGE
+Usage:
+  ./$SELF user      Run user bootstrap in the current account
+  ./$SELF system    Run system bootstrap for the current platform
+  ./$SELF all       Run system bootstrap first, then user bootstrap
 
-cargo install zellij bottom rtx-cli bat exa ripgrep
+Recommended order:
+  Linux: sudo ./init-system.sh && ./init-user.sh
+  macOS: ./init-system.sh && ./init-user.sh
+USAGE
+}
 
-cp -a ./dotfiles/. ~/.config
+run_system() {
+  exec "$ROOT_DIR/init-system.sh"
+}
 
-bat cache --build
-dnf -y install dnf-plugins-core
-dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+run_user() {
+  exec "$ROOT_DIR/init-user.sh"
+}
 
-dnf -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+main() {
+  local mode=${1:-}
 
-curl https://mise.run | sh
-echo "eval \"\$(/home/jordan/.local/bin/mise activate bash)\"" >> ~/.bashrc
-eval "$(mise activate bash)"
+  case "$mode" in
+    system)
+      run_system
+      ;;
+    user)
+      run_user
+      ;;
+    all)
+      if [ "${EUID:-$(id -u)}" -eq 0 ]; then
+        printf 'Do not run "%s all" as root. Run sudo ./init-system.sh, then ./init-user.sh as your normal user.\n' "$SELF" >&2
+        exit 1
+      fi
 
-curl -sS https://starship.rs/install.sh | sh
-echo "eval "$(starship init bash)"" >> ~/.bashrc
-echo "zellij setup --generate-auto-start bash" >> ~/.bashrc
+      if [ "$(uname -s)" = "Linux" ]; then
+        printf 'Running Linux system bootstrap with sudo.\n'
+        sudo "$ROOT_DIR/init-system.sh"
+      else
+        printf 'Running macOS system bootstrap as the current user.\n'
+        "$ROOT_DIR/init-system.sh"
+      fi
+      "$ROOT_DIR/init-user.sh"
+      ;;
+    -h|--help|help|"")
+      usage
+      ;;
+    *)
+      printf 'Unknown mode: %s\n\n' "$mode" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+}
 
-wget -P ~/Downloads https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/FiraCode.zip
-unzip ~/Downloads/FiraCode.zip
-
-if [ ! -d "/usr/local/share/fonts/FiraCode" ]; then
-  mkdir -p /usr/local/share/fonts/
-  cp -r FiraCode /usr/local/share/fonts/
-  chown -R root: /usr/local/share/fonts/FiraCode/
-  chmod 644 /usr/local/share/fonts/FiraCode/*
-  restorecon -vFr /usr/local/share/fonts/FiraCode/
-  fc-cache -v
-fi
-
-mkdir ~/projects ~/dependencies
-
-cd ~/projects
+main "$@"
