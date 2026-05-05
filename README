@@ -1,19 +1,70 @@
 ### README
 
+This repository bootstraps a shared shell and terminal setup on Fedora and macOS.
+
+## supported environments
+- Fedora with `bash`
+- macOS with `zsh`
+
+## bootstrap
+The bootstrap is now split into system-level and user-level steps.
+
+System bootstrap:
+
+```bash
+# Fedora / Linux
+sudo ./init-system.sh
+
+# macOS
+./init-system.sh
+```
+
+User bootstrap, run as your normal account:
+
+```bash
+./init-user.sh
+```
+
+Optional wrapper:
+
+```bash
+./init.sh all
+```
+
+What each script does:
+- `init-system.sh`: installs OS packages with `dnf` on Fedora or Homebrew on macOS, plus Docker and fonts where applicable
+- `init-user.sh`: installs Rust if needed, installs `mise`, `starship`, cargo tools, copies shell files, copies `dotfiles/` into `~/.config`, and creates `~/projects` plus `~/dependencies`
+- `init.sh`: dispatches to `system`, `user`, or `all`
+
+## shell files
+- `.bashrc` loads shared config from `.shellrc`
+- `.zshrc` loads the same shared config for macOS
+- `.shellrc` contains portable aliases, PATH setup, `mise`, `starship`, `onefetch`, and `zellij`
+
+## notes
+- `init-user.sh` should not be run as root, because it writes into the current user's home directory.
+- `init-system.sh` is intentionally separate so locked-down machines can still use the user bootstrap.
+- On Fedora, `init-system.sh` should be run with `sudo`; on macOS it should be run as the normal user because Homebrew does not support root-driven installs.
+- Docker installation is attempted on both platforms, but Docker Desktop on macOS still needs to be launched once manually.
+- The Fedora user bootstrap installs the FiraCode Nerd Font into the user's home directory.
 
 ## alacritty
-Alacritty be weird, you probably want to do it manually like this:
+If you want to build Alacritty manually instead of installing it another way:
+
 ```bash
-cd ~/Dependencies
+cd ~/dependencies
 
 git clone https://github.com/alacritty/alacritty.git
 cd alacritty
-cargo build --release --no-default-features --features=wayland
-cp target/release/alacritty /usr/local/bin # or anywhere else in $PATH
-cp extra/logo/alacritty-term.svg /usr/share/pixmaps/Alacritty.svg
-desktop-file-install extra/linux/Alacritty.desktop
-update-desktop-database
-mkdir -p ~/.bash_completion
-cp extra/completions/alacritty.bash ~/.bash_completion/alacritty
-echo "source ~/.bash_completion/alacritty" >> ~/.bashrc
+
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  cargo build --release
+  cp target/release/alacritty /usr/local/bin
+else
+  cargo build --release --no-default-features --features=wayland
+  cp target/release/alacritty /usr/local/bin
+  cp extra/logo/alacritty-term.svg /usr/share/pixmaps/Alacritty.svg
+  desktop-file-install extra/linux/Alacritty.desktop
+  update-desktop-database
+fi
 ```
