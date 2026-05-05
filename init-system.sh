@@ -50,6 +50,7 @@ install_fedora_packages() {
     ncurses-devel \
     perl \
     helix \
+    neovim \
     curl \
     git \
     unzip \
@@ -76,11 +77,11 @@ install_macos_packages() {
     tcl-tk \
     perl \
     helix \
+    neovim \
     git \
     wget
 
   brew install --cask docker || true
-  brew tap homebrew/cask-fonts || true
   brew install --cask font-fira-code-nerd-font || true
 }
 

@@ -97,9 +97,25 @@ install_starship() {
   curl -sS https://starship.rs/install.sh | sh -s -- -y
 }
 
+install_cargo_package_if_missing() {
+  local command_name=$1
+  local package_name=$2
+
+  if require_command "$command_name"; then
+    return
+  fi
+
+  log "Installing cargo package: $package_name"
+  cargo install --locked "$package_name"
+}
+
 install_cargo_tools() {
-  log "Installing cargo tools"
-  cargo install --locked zellij bottom bat exa ripgrep onefetch
+  install_cargo_package_if_missing zellij zellij
+  install_cargo_package_if_missing btm bottom
+  install_cargo_package_if_missing bat bat
+  install_cargo_package_if_missing exa exa
+  install_cargo_package_if_missing rg ripgrep
+  install_cargo_package_if_missing onefetch onefetch
 }
 
 install_shell_files() {
@@ -132,6 +148,11 @@ install_linux_font() {
 
   zip_path="$HOME/Downloads/FiraCode.zip"
   font_dir="$HOME/.local/share/fonts/FiraCode"
+
+  if find "$font_dir" -maxdepth 1 -type f >/dev/null 2>&1 && [ -n "$(find "$font_dir" -maxdepth 1 -type f -print -quit 2>/dev/null)" ]; then
+    log "FiraCode Nerd Font already present in $font_dir"
+    return
+  fi
 
   mkdir -p "$HOME/Downloads" "$font_dir"
   wget -O "$zip_path" https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/FiraCode.zip

@@ -48,6 +48,18 @@ What each script does:
 - `init-user.sh`: installs Rust if needed, installs `mise`, `starship`, only installs missing cargo tools, copies shell files, copies `dotfiles/` into `~/.config`, and creates `~/projects` plus `~/dependencies`
 - `init.sh`: dispatches to `system`, `user`, or `all`
 
+## neovim
+The repo now includes a LazyVim configuration in `dotfiles/nvim` with the Catppuccin Mocha theme.
+
+Bootstrap notes:
+- `init-system.sh` installs `neovim` on Fedora and macOS
+- `init-user.sh` copies the Neovim config into `~/.config/nvim`
+- the first `nvim` launch will bootstrap `lazy.nvim`, LazyVim, and the configured plugins
+
+Useful first-run checks:
+- run `:LazyHealth` after the first startup
+- run `:checkhealth` if Neovim reports missing external tools
+
 ## shell files
 - `.bashrc` loads shared config from `.shellrc`
 - `.zshrc` loads the same shared config for macOS
@@ -57,6 +69,7 @@ What each script does:
 - `init-user.sh` should not be run as root, because it writes into the current user's home directory.
 - `init-system.sh` is intentionally separate so locked-down machines can still use the user bootstrap.
 - On Fedora, `init-system.sh` should be run with `sudo`; on macOS it should be run as the normal user because Homebrew does not support root-driven installs.
+- The old `homebrew/cask-fonts` tap is no longer needed; `font-fira-code-nerd-font` now installs directly from the main Homebrew cask repository.
 - Docker installation is attempted on both platforms, but Docker Desktop on macOS still needs to be launched once manually.
 - The Fedora user bootstrap installs the FiraCode Nerd Font into the user's home directory and skips the download on reruns if the font is already present.
 
