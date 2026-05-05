@@ -1,4 +1,4 @@
-### README
+## README
 
 This repository bootstraps a shared shell and terminal setup on Fedora and macOS.
 
