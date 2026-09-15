@@ -60,6 +60,16 @@ Useful first-run checks:
 - run `:LazyHealth` after the first startup
 - run `:checkhealth` if Neovim reports missing external tools
 
+## browser themes
+`dotfiles/browser-themes` contains Catppuccin Mocha themes for Chrome and Firefox, matching the palette used everywhere else in this repo.
+
+- `init-user.sh` copies them to `~/.config/browser-themes/` with the rest of `dotfiles/`
+- neither browser picks them up automatically; both need a one-time manual load
+- Chrome: `chrome://extensions`, enable Developer mode, Load unpacked
+- Firefox: release builds reject unsigned add-ons, so it is either a temporary load via `about:debugging` or a free self-distributed signing round-trip through addons.mozilla.org
+
+See `dotfiles/browser-themes/README.md` for the exact steps.
+
 ## shell files
 - `.bashrc` loads shared config from `.shellrc`
 - `.zshrc` loads the same shared config for macOS
